@@ -1,0 +1,31 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+
+.custom-heading {
+  font-family: 'Commodore PET', cursive;
+  font-size: 24px;
+  color: #000000;
+}
+.custom-heading2 {
+  font-family: 'Commodore PET', cursive;
+  font-size: 36px;
+  color: #000000;
+}
+
+.custom-heading3 {
+  font-family: 'Century Gothic', sans-serif;
+  font-size: 36px;
+  color: #000000;
+}
