@@ -48,7 +48,6 @@ public class TestQuestServlet extends HttpServlet {
                 resp.getWriter().write("{\"error\": \"Вы не авторизованы\"}");
                 return;
             }
-
             Player player = (Player) session.getAttribute("player");
             if (player == null) {
                 // Установка начальной локации для игрока
@@ -62,17 +61,14 @@ public class TestQuestServlet extends HttpServlet {
                 session.setAttribute("player", player);
                 logger.info("Игроку назначена начальная локация: {}", startNodeId);
             }
-
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");
-
             // Получаем текущую локацию игрока
             Node currentNode = questService.getLocation(player.getCurrentNodeId());
             if (currentNode == null) {
                 logger.error("Текущая локация '{}' игрока не найдена.", player.getCurrentNodeId());
                 throw new IllegalStateException("Текущая локация игрока не найдена.");
             }
-
             // Формируем данные для ответа
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("location", Map.of(
@@ -80,7 +76,6 @@ public class TestQuestServlet extends HttpServlet {
                     "description", currentNode.getDescription()
             ));
             responseData.put("inventory", getInventoryIds(player.getInventory()));  // Инвентарь игрока
-
             // Соседние локации
             List<Map<String, String>> neighbors = currentNode.getNeighbors().stream()
                     .map(neighborId -> Map.of(
@@ -89,10 +84,8 @@ public class TestQuestServlet extends HttpServlet {
                     ))
                     .collect(Collectors.toList());
             responseData.put("neighbors", neighbors);
-
             // Добавляем здоровье игрока
             responseData.put("health", player.getHealth());
-
             // Добавляем предметы в текущей локации
             List<Item> locationItems = currentNode.getItems();
             List<Map<String, String>> itemsInLocation = locationItems.stream()
@@ -113,7 +106,6 @@ public class TestQuestServlet extends HttpServlet {
                     .collect(Collectors.toList());
             responseData.put("actions", availableActions);
 
-            // Преобразуем данные в JSON и отправляем
             Gson gson = new Gson();
             String jsonResponse = gson.toJson(responseData);
             resp.getWriter().write(jsonResponse);
@@ -128,8 +120,6 @@ public class TestQuestServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-
-        // Установка типа контента для JSON
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
@@ -161,14 +151,11 @@ public class TestQuestServlet extends HttpServlet {
             resp.getWriter().write("{\"error\": \"Некорректный формат JSON\"}");
             return;
         }
-
         // Получаем действие из запроса
         String action = jsonObject.get("action").getAsString();
         logger.info("Получено действие: {}", action);
-
         // Обработка действий
         String responseMessage = "";
-
         if (action.equalsIgnoreCase("pick_up")) {
             if (!jsonObject.has("itemId")) {
                 logger.warn("POST-запрос к /api/test-quest с действием 'pick_up' без 'itemId'.");

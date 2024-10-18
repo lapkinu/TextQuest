@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class Item implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String id;            // Идентификатор предмета (ключ предмета)
+    private String id;            // Идентификатор предмета
     private String description;   // Описание предмета
 
     public Item() {}

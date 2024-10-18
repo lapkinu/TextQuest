@@ -27,7 +27,6 @@ public class Node implements Serializable {
         this.actions = new ArrayList<>();
     }
 
-    // Методы для работы с соседями
     public void addNeighbor(String neighborId) {
         neighbors.add(neighborId);
     }
@@ -36,7 +35,6 @@ public class Node implements Serializable {
         return neighbors;
     }
 
-    // Методы для работы с предметами
     public void addItem(Item item) {
         items.add(item);
     }
@@ -49,7 +47,6 @@ public class Node implements Serializable {
         items.removeIf(item -> item.getId().equalsIgnoreCase(itemId));
     }
 
-    // Методы для работы с действиями
     public void addAction(Action action) {
         actions.add(action);
     }
@@ -58,7 +55,6 @@ public class Node implements Serializable {
         return actions;
     }
 
-    // Геттеры и сеттеры
     public String getId() {
         return id;
     }

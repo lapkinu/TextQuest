@@ -22,7 +22,7 @@ import java.util.List;
 public class CreateQuestServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(CreateQuestServlet.class);
     private Gson gson;
-    private String questsFilePath = "quests_2.json"; // Путь к вашему JSON-файлу с квестами
+    private String questsFilePath = "quests_2.json";
 
     @Override
     public void init() throws ServletException {
@@ -33,7 +33,6 @@ public class CreateQuestServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Установка типа контента для JSON
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
@@ -45,24 +44,19 @@ public class CreateQuestServlet extends HttpServlet {
             while ((line = reader.readLine()) != null) {
                 jsonInput.append(line);
             }
-
             // Парсинг JSON
             Type questListType = new TypeToken<JsonObject>() {}.getType();
             JsonObject jsonObject = gson.fromJson(jsonInput.toString(), questListType);
-
             if (!jsonObject.has("locations")) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 resp.getWriter().write("{\"status\": \"failure\", \"error\": \"Отсутствует поле 'locations'.\"}");
                 return;
             }
-
             // Извлечение списка локаций
             Type locationsType = new TypeToken<List<Node>>() {}.getType();
             List<Node> newLocations = gson.fromJson(jsonObject.get("locations"), locationsType);
-
             // Загрузка существующих квестов
             Quest existingQuest = loadExistingQuest();
-
             // Добавление новых локаций
             for (Node loc : newLocations) {
                 // Проверка на уникальность ID
@@ -73,10 +67,8 @@ public class CreateQuestServlet extends HttpServlet {
                 }
                 existingQuest.getLocations().add(loc);
             }
-
             // Сохранение обновлённого квеста
             saveQuest(existingQuest);
-
             // Отправка успешного ответа
             resp.getWriter().write("{\"status\": \"success\", \"message\": \"Квесты успешно обновлены.\"}");
             logger.info("Новые локации добавлены и сохранены.");

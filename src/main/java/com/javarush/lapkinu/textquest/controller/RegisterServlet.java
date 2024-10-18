@@ -18,14 +18,13 @@ public class RegisterServlet extends HttpServlet {
     private UserService userService;
 
     @Override
-    public void init() throws ServletException {
+    public void init() {
         String usersFilePath = getServletContext().getRealPath("/data/users.properties");
         userService = new UserService(usersFilePath);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        // Установка типа контента для JSON
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 

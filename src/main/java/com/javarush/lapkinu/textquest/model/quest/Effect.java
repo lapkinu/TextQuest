@@ -5,8 +5,8 @@ import java.io.Serializable;
 public class Effect implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String type;  // Тип эффекта, например, "increase_health", "add_neighbor"
-    private String value; // Значение эффекта, например, "20", "newLocation"
+    private String type;  // Тип эффекта
+    private String value; // Значение эффекта
 
     public Effect() {}
 

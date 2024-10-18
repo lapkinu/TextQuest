@@ -49,7 +49,6 @@ public class Player implements Serializable {
         this.health = health - removeHealth;
     }
 
-    // Метод для проверки наличия предмета в инвентаре
     public boolean hasItem(String itemId) {
         for (Item item : inventory) {
             if (item.getId().equalsIgnoreCase(itemId)) {
@@ -59,20 +58,16 @@ public class Player implements Serializable {
         return false;
     }
 
-    // Метод для удаления предмета из инвентаря по идентификатору
     public void removeItem(String itemId) {
         inventory.removeIf(item -> item.getId().equalsIgnoreCase(itemId));
     }
 
-    // Метод для добавления предмета в инвентарь
     public void addItem(Item item) {
         inventory.add(item);
     }
 
-    // Метод для увеличения здоровья
     public void increaseHealth(int amount) {
         this.health += amount;
-        // Можно добавить проверку на максимальное здоровье
         System.out.println("Ваше здоровье увеличилось до " + this.health);
     }
 }

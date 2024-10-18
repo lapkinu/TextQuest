@@ -19,14 +19,13 @@ public class LoginServlet extends HttpServlet {
     private UserService userService;
 
     @Override
-    public void init() throws ServletException {
+    public void init() {
         String usersFilePath = getServletContext().getRealPath("/data/users.properties");
         userService = new UserService(usersFilePath);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        // Установка типа контента для JSON
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
@@ -37,7 +36,6 @@ public class LoginServlet extends HttpServlet {
         while ((line = reader.readLine()) != null) {
             jsonInput.append(line);
         }
-
         // Парсинг JSON
         Gson gson = new Gson();
         JsonObject jsonObject;

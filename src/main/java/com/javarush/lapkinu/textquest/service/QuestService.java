@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.lang.reflect.Type;
 
 public class QuestService {
+
     private static final Logger logger = LoggerFactory.getLogger(QuestService.class);
 
     private Graph questGraph;
@@ -74,13 +75,7 @@ public class QuestService {
                 logger.warn("Игроку не хватает предмета '{}' для выполнения действия '{}'.", itemKey, actionDescription);
                 return "Для выполнения этого действия требуется предмет: " + itemKey;
             }
-
-            // Применяем эффект действия и получаем сообщение
             String effectMessage = applyEffect(actionToPerform.getEffect(), player, currentNode);
-
-            // Удаляем предмет из инвентаря, если это необходимо
-            // Если хотите, можете добавить условие для удаления предмета после действия
-
             return effectMessage != null ? effectMessage : "Действие успешно выполнено.";
         }
 
@@ -88,7 +83,6 @@ public class QuestService {
         return "Действие не найдено.";
     }
 
-    // Метод для подбора предмета
     public String pickUpItem(Player player, String itemId) {
         Node currentNode = questGraph.getNode(player.getCurrentNodeId());
         if (currentNode == null) {
@@ -100,21 +94,17 @@ public class QuestService {
                 .filter(i -> i.getId().equalsIgnoreCase(itemId))
                 .findFirst()
                 .orElse(null);
-
         if (item == null) {
             logger.warn("Предмет '{}' не найден в текущей локации '{}'.", itemId, currentNode.getId());
             return "Предмет не найден в текущей локации.";
         }
 
-        // Добавляем предмет в инвентарь и удаляем из локации
         player.addItem(item);
         currentNode.removeItem(itemId);
         logger.info("Игрок подобрал предмет '{}'.", itemId);
-
         return "Вы подобрали: " + item.getId();
     }
 
-    // Метод для перемещения между локациями
     public String moveToLocation(Player player, String locationId) {
         Node currentNode = questGraph.getNode(player.getCurrentNodeId());
         if (currentNode == null) {
@@ -139,11 +129,9 @@ public class QuestService {
         return "Невозможно переместиться в указанную локацию.";
     }
 
-    // Метод для применения эффекта
     private String applyEffect(Effect effect, Player player, Node currentNode) {
         String type = effect.getType();
         String value = effect.getValue();
-
         switch (type) {
             case "increase_health":
                 try {

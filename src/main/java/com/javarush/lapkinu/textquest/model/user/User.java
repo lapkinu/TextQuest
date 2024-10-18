@@ -6,7 +6,7 @@ public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String username;
-    private String password; // В реальном приложении храните хеш пароля
+    private String password;
 
     public User(String username, String password) {
         this.username = username;
@@ -26,7 +26,6 @@ public class User implements Serializable {
         return password;
     }
 
-    // В реальном приложении не добавляйте сеттер для пароля или храните хеш пароля
     public void setPassword(String password) {
         this.password = password;
     }

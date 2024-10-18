@@ -12,7 +12,6 @@ public class UserService {
         loadUsers();
     }
 
-    // Загрузка пользователей из файла
     private void loadUsers() {
         usersProperties = new Properties();
         try (InputStream input = new FileInputStream(usersFilePath)) {
@@ -22,7 +21,6 @@ public class UserService {
         }
     }
 
-    // Сохранение пользователей в файл
     private void saveUsers() {
         try (OutputStream output = new FileOutputStream(usersFilePath)) {
             usersProperties.store(output, null);
@@ -31,17 +29,15 @@ public class UserService {
         }
     }
 
-    // Регистрация нового пользователя
     public boolean registerUser(String username, String password) {
         if (usersProperties.containsKey(username)) {
-            return false; // Пользователь уже существует
+            return false;
         }
         usersProperties.setProperty(username, password);
         saveUsers();
         return true;
     }
 
-    // Проверка авторизации пользователя
     public boolean authenticate(String username, String password) {
         String storedPassword = usersProperties.getProperty(username);
         return storedPassword != null && storedPassword.equals(password);
