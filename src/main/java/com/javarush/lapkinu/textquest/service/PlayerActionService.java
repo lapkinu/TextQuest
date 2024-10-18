@@ -1,9 +1,6 @@
 package com.javarush.lapkinu.textquest.service;
 
-import com.javarush.lapkinu.textquest.model.quest.Action;
-import com.javarush.lapkinu.textquest.model.quest.Item;
-import com.javarush.lapkinu.textquest.model.quest.Node;
-import com.javarush.lapkinu.textquest.model.quest.Player;
+import com.javarush.lapkinu.textquest.model.quest.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,88 +13,76 @@ public class PlayerActionService {
     public String movePlayer(String locationId, Player player, QuestService questService) {
         Node currentNode = questService.getCurrentNode(player);
         if (currentNode == null) {
-            logger.warn("Current location not found for player.");
-            return "Error: Current location not found.";
+            logger.warn("Текущая локация не найдена для игрока.");
+            return "Ошибка: текущая локация не найдена.";
         }
 
         Node nextNode = questService.getLocation(locationId);
         if (nextNode == null || !currentNode.getNeighbors().contains(locationId)) {
-            logger.warn("Cannot move to location '{}'.", locationId);
-            return "Cannot move to the specified location.";
+            logger.warn("Невозможно переместиться в локацию '{}'.", locationId);
+            return "Невозможно переместиться в указанную локацию.";
         }
 
         player.setCurrentNodeId(nextNode.getId());
-        logger.info("Player moved to location '{}'.", locationId);
-        return "You moved to location: " + nextNode.getId() + ".";
+        logger.info("Игрок перемещён в локацию '{}'.", locationId);
+        return "Вы переместились в локацию: " + nextNode.getId() + ".";
     }
 
     public String handlePlayerAction(String actionDescription, Player player, QuestService questService, EffectService effectService) {
         Node currentNode = questService.getCurrentNode(player);
         if (currentNode == null) {
-            logger.warn("Current location not found for player.");
-            return "Error: Current location not found.";
+            logger.warn("Текущая локация не найдена для игрока.");
+            return "Ошибка: текущая локация не найдена.";
         }
 
-        // Find the action in the current location by description
+        // Ищем действие в текущей локации по описанию
         Optional<Action> actionOptional = currentNode.getActions().stream()
                 .filter(action -> action.getDescription().equals(actionDescription))
                 .findFirst();
 
         if (!actionOptional.isPresent()) {
-            logger.warn("Action '{}' not found in current location.", actionDescription);
+            logger.warn("Действие '{}' не найдено в текущей локации.", actionDescription);
             return "Действие не найдено.";
         }
 
         Action action = actionOptional.get();
 
-        // Check if the required item is in the player's inventory
+        // Проверяем, есть ли необходимый предмет у игрока
         if (action.getItemKey() != null && !player.hasItem(action.getItemKey())) {
-            logger.warn("Player does not have required item '{}' for action '{}'.", action.getItemKey(), actionDescription);
-            return "У вас нет необходимого элемента в инвентаре для этого действия.";
+            logger.warn("Игрок не имеет необходимого предмета '{}' для действия '{}'.", action.getItemKey(), actionDescription);
+            return "У вас нет необходимого предмета для этого действия.";
         }
 
-        // Apply the effect of the action
+        // Применяем эффект действия
         return effectService.applyEffect(action.getEffect(), player);
     }
 
-    public String handleItemAction(String actionType, String itemId, Player player, QuestService questService) {
-        switch (actionType) {
-            case "move":
-                return movePlayer(itemId, player, questService);
-            case "pick_up":
-                return pickUpItem(itemId, player, questService);
-            default:
-                logger.warn("Unknown action type '{}'.", actionType);
-                return "Unknown action.";
-        }
-    }
-
-    private String pickUpItem(String itemId, Player player, QuestService questService) {
+    public String pickUpItem(String itemId, Player player, QuestService questService) {
         Node currentNode = questService.getCurrentNode(player);
         if (currentNode == null) {
-            logger.warn("Current location not found for player.");
-            return "Error: Current location not found.";
+            logger.warn("Текущая локация не найдена для игрока.");
+            return "Ошибка: текущая локация не найдена.";
         }
 
-        // Find the item in the current location
+        // Ищем предмет в текущей локации
         Optional<Item> itemOptional = currentNode.getItems().stream()
                 .filter(item -> item.getId().equals(itemId))
                 .findFirst();
 
         if (!itemOptional.isPresent()) {
-            logger.warn("Item '{}' not found in current location.", itemId);
-            return "Item not found in current location.";
+            logger.warn("Предмет '{}' не найден в текущей локации.", itemId);
+            return "Предмет не найден в текущей локации.";
         }
 
         Item item = itemOptional.get();
 
-        // Add item to player's inventory
+        // Добавляем предмет в инвентарь игрока
         player.addItem(item.getId());
 
-        // Remove item from location
+        // Удаляем предмет из локации
         currentNode.getItems().remove(item);
 
-        logger.info("Player picked up item '{}'.", itemId);
-        return "Предмет " + itemId + " перемещен в инвентарь";
+        logger.info("Игрок подобрал предмет '{}'.", itemId);
+        return "Вы подобрали предмет: " + itemId;
     }
 }

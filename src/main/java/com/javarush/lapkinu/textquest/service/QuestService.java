@@ -22,7 +22,7 @@ public class QuestService {
         loadQuests(jsonFilePath);
     }
 
-    // Method to load quests from a JSON file
+    // Метод для загрузки квестов из файла JSON
     private void loadQuests(String jsonFilePath) {
         try {
             Gson gson = new Gson();
@@ -37,27 +37,27 @@ public class QuestService {
                     questGraph.addNode(node);
                 }
 
-                logger.info("Quests loaded successfully from '{}'.", jsonFilePath);
+                logger.info("Квесты успешно загружены из '{}'.", jsonFilePath);
             } else {
-                throw new IllegalStateException("No data in JSON file.");
+                throw new IllegalStateException("Нет данных в JSON-файле.");
             }
 
         } catch (Exception e) {
-            logger.error("Error loading quests from '{}': {}", jsonFilePath, e.getMessage(), e);
+            logger.error("Ошибка при загрузке квестов из '{}': {}", jsonFilePath, e.getMessage(), e);
         }
     }
 
-    // Method to get the starting node
+    // Метод для получения стартовой локации
     public Node getStartNode() {
         return questGraph.getNodes().values().stream().findFirst().orElse(null);
     }
 
-    // Method to get a location by its ID
+    // Метод для получения локации по её ID
     public Node getLocation(String locationId) {
         return questGraph.getNode(locationId);
     }
 
-    // Method to get the player's current location
+    // Метод для получения текущей локации игрока
     public Node getCurrentNode(Player player) {
         return getLocation(player.getCurrentNodeId());
     }

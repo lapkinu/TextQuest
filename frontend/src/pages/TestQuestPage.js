@@ -21,13 +21,17 @@ function TestQuestPage() {
             if (!response.ok) {
                 throw new Error(data.error || `Ошибка: ${response.status}`);
             }
-            setLocation(data.location || null); // Устанавливаем локацию
-            setInventory(data.inventory || []); // Устанавливаем инвентарь
-            setNeighbors(data.neighbors || []); // Устанавливаем соседей
-            setLocationItems(data.locationItems || []); // Устанавливаем предметы в локации
-            setActions(data.actions || []); // Устанавливаем доступные действия
-            if (data.health !== undefined) {
-                setHealth(data.health); // Обновляем здоровье игрока
+
+            // Добавьте эту строку:
+            const gameState = data.gameState || data;
+
+            setLocation(gameState.location || null); // Устанавливаем локацию
+            setInventory(gameState.inventory || []); // Устанавливаем инвентарь
+            setNeighbors(gameState.neighbors || []); // Устанавливаем соседей
+            setLocationItems(gameState.locationItems || []); // Устанавливаем предметы в локации
+            setActions(gameState.actions || []); // Устанавливаем доступные действия
+            if (gameState.health !== undefined) {
+                setHealth(gameState.health); // Обновляем здоровье игрока
             } else {
                 setHealth(100); // Значение по умолчанию
             }

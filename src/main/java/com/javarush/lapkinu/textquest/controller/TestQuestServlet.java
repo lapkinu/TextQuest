@@ -2,14 +2,20 @@ package com.javarush.lapkinu.textquest.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.javarush.lapkinu.textquest.model.quest.Node;
+import com.google.gson.JsonParser;
+import com.javarush.lapkinu.textquest.command.ActionCommand;
+import com.javarush.lapkinu.textquest.command.ActionCommandFactory;
+import com.javarush.lapkinu.textquest.model.quest.GameState;
 import com.javarush.lapkinu.textquest.model.quest.Player;
+import com.javarush.lapkinu.textquest.model.response.GameResponse;
 import com.javarush.lapkinu.textquest.service.*;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +23,6 @@ import java.io.IOException;
 import java.io.BufferedReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @WebServlet("/api/test-quest")
 public class TestQuestServlet extends HttpServlet {
@@ -27,6 +32,8 @@ public class TestQuestServlet extends HttpServlet {
     private SessionService sessionService;
     private PlayerActionService playerActionService;
     private EffectService effectService;
+    private GameService gameService;
+    private ActionCommandFactory commandFactory;
 
     @Override
     public void init() throws ServletException {
@@ -34,65 +41,80 @@ public class TestQuestServlet extends HttpServlet {
         sessionService = new SessionService();
         playerActionService = new PlayerActionService();
         effectService = new EffectService(questService);
-        logger.info("TestQuestServlet initialized.");
+        gameService = new GameService(questService);
+        commandFactory = new ActionCommandFactory(playerActionService, questService, effectService);
+        logger.info("TestQuestServlet инициализирован.");
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Player player = sessionService.getPlayerFromSession(req, questService);
         if (player == null) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().write("{\"error\": \"Unauthorized or starting location not found.\"}");
+            sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Вы не авторизованы или начальная локация не найдена.");
             return;
         }
 
-        // Get locationId from request
         String locationId = req.getParameter("locationId");
+        Map<String, Object> responseData = new HashMap<>();
 
         if (locationId != null && !locationId.isEmpty()) {
-            // If locationId is provided, move the player
-            String result = playerActionService.movePlayer(locationId, player, questService);
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", result);
-            resp.setContentType("application/json; charset=UTF-8");
-            resp.getWriter().write(new Gson().toJson(response));
+            // Если указан locationId, перемещаем игрока
+            String message = playerActionService.movePlayer(locationId, player, questService);
+            responseData.put("message", message);
         } else {
-            // If locationId is not provided, return the current game state
-            Node currentNode = questService.getCurrentNode(player);
-            if (currentNode == null) {
-                logger.warn("Current location not found for player.");
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write("{\"error\": \"Current location not found.\"}");
-                return;
-            }
+            // Иначе возвращаем текущее состояние игры
+            GameState gameState = gameService.getCurrentGameState(player);
 
-            // Build the game state response
-            Map<String, Object> gameState = new HashMap<>();
-            gameState.put("location", currentNode);
-            gameState.put("inventory", player.getInventory());
-            gameState.put("neighbors", currentNode.getNeighbors().stream()
-                    .map(questService::getLocation)
-                    .collect(Collectors.toList()));
-            gameState.put("locationItems", currentNode.getItems());
-            gameState.put("actions", currentNode.getActions());
-            gameState.put("health", player.getHealth());
-
-            resp.setContentType("application/json; charset=UTF-8");
-            resp.getWriter().write(new Gson().toJson(gameState));
+            // Распаковываем данные из gameState без обёртки в объект gameState
+            responseData.put("location", gameState.getLocation());
+            responseData.put("inventory", gameState.getInventory());
+            responseData.put("neighbors", gameState.getNeighbors());
+            responseData.put("locationItems", gameState.getLocationItems());
+            responseData.put("actions", gameState.getActions());
+            responseData.put("health", gameState.getHealth());
         }
+
+        sendResponse(resp, responseData);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        // Step 1: Get player from session
         Player player = sessionService.getPlayerFromSession(req, questService);
         if (player == null) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().write("{\"error\": \"Unauthorized\"}");
+            sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Вы не авторизованы");
             return;
         }
 
-        // Step 2: Read JSON from request body
+        JsonObject jsonObject = parseRequestBody(req);
+        if (jsonObject == null || !jsonObject.has("action") || jsonObject.get("action").isJsonNull()) {
+            sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Действие не указано.");
+            return;
+        }
+
+        String actionType = jsonObject.get("action").getAsString();
+
+        ActionCommand command = commandFactory.getCommand(actionType);
+
+        String result = command.execute(player, jsonObject);
+
+        GameResponse gameResponse = new GameResponse(result);
+        sendResponse(resp, gameResponse);
+    }
+
+    // Вспомогательные методы
+    private void sendError(HttpServletResponse resp, int statusCode, String message) throws IOException {
+        resp.setStatus(statusCode);
+        resp.setContentType("application/json; charset=UTF-8");
+        resp.getWriter().write("{\"error\": \"" + message + "\"}");
+    }
+
+    private void sendResponse(HttpServletResponse resp, Object data) throws IOException {
+        resp.setContentType("application/json; charset=UTF-8");
+        String jsonResponse = new Gson().toJson(data);
+        resp.getWriter().write(jsonResponse);
+    }
+
+    private JsonObject parseRequestBody(HttpServletRequest req) throws IOException {
         StringBuilder sb = new StringBuilder();
         try (BufferedReader reader = req.getReader()) {
             String line;
@@ -100,47 +122,9 @@ public class TestQuestServlet extends HttpServlet {
                 sb.append(line);
             }
         }
-
-        // Logging for request body
-        logger.info("Request body: {}", sb.toString());
-
-        // Step 3: Parse JSON
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(sb.toString(), JsonObject.class);
-
-        // Logging for JSON content
-        logger.info("Parsed JSON object: {}", jsonObject.toString());
-
-        // Step 4: Check for 'action' parameter
-        if (!jsonObject.has("action") || jsonObject.get("action").isJsonNull()) {
-            logger.warn("Parameter 'action' is missing or null.");
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("{\"error\": \"Action not specified.\"}");
-            return;
+        if (sb.length() == 0) {
+            return null;
         }
-
-        // Step 5: Get 'action' and 'itemId' from JSON
-        String actionDescription = jsonObject.get("action").getAsString();
-        String itemId = jsonObject.has("itemId") && !jsonObject.get("itemId").isJsonNull()
-                ? jsonObject.get("itemId").getAsString()
-                : null;
-
-        logger.info("Received action: '{}', itemId: '{}'", actionDescription, itemId);
-
-        // Step 6: Handle player action
-        String result;
-        if (itemId != null) {
-            // Handle item actions or movement
-            result = playerActionService.handleItemAction(actionDescription, itemId, player, questService);
-        } else {
-            // Handle other actions
-            result = playerActionService.handlePlayerAction(actionDescription, player, questService, effectService);
-        }
-
-        // Return result to client
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", result);
-        resp.setContentType("application/json; charset=UTF-8");
-        resp.getWriter().write(new Gson().toJson(response));
+        return JsonParser.parseString(sb.toString()).getAsJsonObject();
     }
 }

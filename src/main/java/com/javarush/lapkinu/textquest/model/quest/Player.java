@@ -7,16 +7,16 @@ import java.util.List;
 public class Player implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String currentNodeId;       // Current location identifier
-    private List<String> inventory;     // Player's inventory (list of item IDs)
-    private int health;                 // Player's health
+    private String currentNodeId;       // Идентификатор текущей локации
+    private List<String> inventory;
+    private int health;
 
     public Player() {
         this.inventory = new ArrayList<>();
         this.health = 100;
     }
 
-    // Getters and Setters
+    // Геттеры и сеттеры
     public String getCurrentNodeId() {
         return currentNodeId;
     }
@@ -37,7 +37,7 @@ public class Player implements Serializable {
         return health;
     }
 
-    // Methods to modify health
+    // Методы для управления здоровьем
     public void increaseHealth(int amount) {
         this.health = Math.min(this.health + amount, 100);
     }
@@ -46,7 +46,7 @@ public class Player implements Serializable {
         this.health = Math.max(this.health - amount, 0);
     }
 
-    // Methods to manage inventory
+    // Методы для управления инвентарем
     public boolean hasItem(String itemId) {
         return inventory.contains(itemId);
     }
