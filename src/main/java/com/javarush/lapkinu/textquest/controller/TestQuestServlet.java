@@ -85,7 +85,7 @@ public class TestQuestServlet extends HttpServlet {
             List<Map<String, String>> neighbors = currentNode.getNeighbors().stream()
                     .map(neighborId -> Map.of(
                             "id", neighborId,
-                            "name", neighborId  // Предполагается, что name совпадает с id
+                            "name", neighborId
                     ))
                     .collect(Collectors.toList());
             responseData.put("neighbors", neighbors);

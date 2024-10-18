@@ -49,7 +49,6 @@ function RegisterPage() {
                         required
                     />
                 </Form.Group>
-
                 <Form.Group controlId="formPassword">
                     <Form.Label>Пароль</Form.Label>
                     <Form.Control
@@ -60,7 +59,6 @@ function RegisterPage() {
                         required
                     />
                 </Form.Group>
-
                 <Button variant="primary" type="submit">
                     Зарегистрироваться
                 </Button>

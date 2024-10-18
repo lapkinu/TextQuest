@@ -14,7 +14,7 @@ function TestQuestPage() {
     const [health, setHealth] = useState(100); // Здоровье игрока
     const [showMapModal, setShowMapModal] = useState(false); // Отображение модального окна с картой
 
-    // Функция для получения данных с сервера (GET запрос)
+    // получения данных с сервера
     const fetchQuestData = async () => {
         try {
             const response = await fetch('/api/test-quest');
@@ -30,44 +30,37 @@ function TestQuestPage() {
             if (data.health !== undefined) {
                 setHealth(data.health); // Обновляем здоровье игрока
             }
-            // setMessage(''); // Сбрасываем сообщение
         } catch (error) {
             console.error('Ошибка при получении данных квеста', error);
             setMessage('Ошибка при получении данных квеста');
         }
     };
 
-    // Функция для отправки POST запроса (для действий)
+    // отправка POST запроса
     const handleAction = async (actionDescription, itemId = null) => {
         try {
             const bodyData = itemId
                 ? { action: actionDescription, itemId: itemId }
                 : { action: actionDescription };
-
-            // Сохраняем текущих соседей
             const currentNeighbors = [...neighbors];
-
             const response = await fetch('/api/test-quest', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(bodyData), // Отправляем данные как JSON
+                body: JSON.stringify(bodyData), // Отправка данных
             });
             const data = await response.json();
             if (!response.ok) {
                 throw new Error(data.error || `Ошибка: ${response.status}`);
             }
-
-            // Проверяем, является ли действие перемещением
+            // Проверка, что действие перемещение
             const isMovement = currentNeighbors.some(neighbor => neighbor.id === actionDescription);
-
             fetchQuestData(); // Обновляем данные после действия
-
             if (!isMovement) {
                 setEffectMessage(data.message || 'Действие успешно выполнено.');
             } else {
-                setEffectMessage(''); // Очищаем effectMessage при перемещении
+                setEffectMessage(''); // Очистка effectMessage при перемещении
             }
         } catch (error) {
             console.error('Ошибка при выполнении действия', error);
@@ -75,12 +68,11 @@ function TestQuestPage() {
         }
     };
 
-    // Загрузка данных при загрузке страницы
     useEffect(() => {
         fetchQuestData();
     }, []);
 
-    // Перенаправление на страницу авторизации, если не авторизованы
+    // Перенаправление
     useEffect(() => {
         if (message === 'Вы не авторизованы') {
             window.location.href = '/login';
@@ -89,7 +81,7 @@ function TestQuestPage() {
 
     return (
         <Container className="mt-4">
-            {/* Заголовок сверху */}
+            {/* Заголовок*/}
             <Row>
                 <Col style={{ height: '120px' }}>
                     <h1 className="text-center custom-heading2">"Потайная комната невидимки"</h1>
@@ -97,7 +89,7 @@ function TestQuestPage() {
             </Row>
 
             <Row>
-                {/* Левая колонка для названия и описания */}
+                {/* Левая колонка*/}
                 <Col>
                     <Row>
                         {location ? (
@@ -138,7 +130,7 @@ function TestQuestPage() {
                         )}
                     </Row>
 
-                    {/* Постоянная область для отображения сообщений об эффектах */}
+                    {/* message об эффектах */}
                     <Row className="mt-4">
                         <Col>
                             {effectMessage ? (
@@ -156,26 +148,22 @@ function TestQuestPage() {
                                     )}
                                 />
                             ) : (
-                                // Можно оставить пустой блок или добавить заглушку
                                 <div style={{ minHeight: '50px' }}></div>
                             )}
                         </Col>
                     </Row>
                 </Col>
 
-                {/* Правая колонка для здоровья, инвентаря, предметов, действий и переходов */}
+                {/* Правая колонка*/}
                 <Col md={4}>
                     <Row>
                         <Col>
-                            {/* Карточка здоровья */}
                             <Card className="mb-4">
                                 <Card.Header>Здоровье</Card.Header>
                                 <Card.Body>
                                     <ProgressBar now={health} label={`${health}%`} />
                                 </Card.Body>
                             </Card>
-
-                            {/* Карточка инвентаря */}
                             <Card className="mb-4">
                                 <Card.Header>Инвентарь</Card.Header>
                                 <ListGroup variant="flush">
@@ -188,8 +176,6 @@ function TestQuestPage() {
                                     )}
                                 </ListGroup>
                             </Card>
-
-                            {/* Карточка предметов в локации */}
                             <Card className="mb-4">
                                 <Card.Header>Предметы в локации</Card.Header>
                                 <ListGroup variant="flush">
@@ -212,8 +198,6 @@ function TestQuestPage() {
                                     )}
                                 </ListGroup>
                             </Card>
-
-                            {/* Карточка действий */}
                             <Card className="mb-4">
                                 <Card.Header>Действия</Card.Header>
                                 <Card.Body>
@@ -233,8 +217,6 @@ function TestQuestPage() {
                                     )}
                                 </Card.Body>
                             </Card>
-
-                            {/* Карточка переходов */}
                             <Card className="mb-4">
                                 <Card.Header>Переходы</Card.Header>
                                 <Card.Body>
@@ -254,8 +236,6 @@ function TestQuestPage() {
                                     )}
                                 </Card.Body>
                             </Card>
-
-                            {/* Кнопка "Показать карту" */}
                             <Button
                                 variant="info"
                                 className="mb-4"
@@ -268,8 +248,6 @@ function TestQuestPage() {
                     </Row>
                 </Col>
             </Row>
-
-            {/* Служебные сообщения (например, ошибки) */}
             {message && (
                 <Row className="mt-4">
                     <Col>
@@ -279,8 +257,6 @@ function TestQuestPage() {
                     </Col>
                 </Row>
             )}
-
-            {/* Модальное окно для карты */}
             <Modal show={showMapModal} onHide={() => setShowMapModal(false)} size="lg" centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Карта квеста</Modal.Title>

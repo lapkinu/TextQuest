@@ -15,7 +15,6 @@ public class Effect implements Serializable {
         this.value = value;
     }
 
-    // Геттеры и сеттеры
     public String getType() {
         return type;
     }

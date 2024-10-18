@@ -54,13 +54,12 @@
             <version>2.0.7</version>
         </dependency>
 
-        <!-- Logback Classic (реализация SLF4J) -->
+        <!-- Logback Classic -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.5.7</version>
         </dependency>
-
 
         <!-- JUnit 5 -->
         <dependency>
@@ -86,7 +85,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Для тестирования сервлетов (опционально) -->
+        <!-- тестирования сервлетов -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
@@ -103,7 +102,7 @@
                 <version>3.4.0</version>
             </plugin>
 
-            <!-- Maven Surefire Plugin для запуска тестов -->
+            <!-- Maven Surefire Plugin  -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

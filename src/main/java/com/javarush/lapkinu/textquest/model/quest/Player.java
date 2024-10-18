@@ -16,7 +16,7 @@ public class Player implements Serializable {
     public Player(String startNodeId) {
         this.currentNodeId = startNodeId;
         this.inventory = new ArrayList<>();
-        this.health = 100; // Начальное здоровье
+        this.health = 100;
     }
 
     // Геттеры и сеттеры
@@ -40,8 +40,13 @@ public class Player implements Serializable {
         return health;
     }
 
-    public void setHealth(int health) {
-        this.health = health;
+    public void setHealth(int prusHealth) {
+        if (this.health < 100) {
+            this.health = health + prusHealth;
+        }
+    }
+    public void setRemoveHealth(int removeHealth) {
+        this.health = health - removeHealth;
     }
 
     // Метод для проверки наличия предмета в инвентаре

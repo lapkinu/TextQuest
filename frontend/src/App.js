@@ -40,7 +40,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
-            <Route path="/test-quest" element={<TestQuestPage />} /> {/* Маршрут для новой страницы */}
+            <Route path="/test-quest" element={<TestQuestPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
           </Routes>

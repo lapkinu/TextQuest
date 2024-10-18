@@ -126,6 +126,7 @@ public class QuestService {
             Node nextNode = questGraph.getNode(locationId);
             if (nextNode != null) {
                 player.setCurrentNodeId(nextNode.getId());
+                player.setRemoveHealth(5);
                 logger.info("Игрок переместился в локацию '{}'.", nextNode.getId());
                 return "Вы переместились в локацию: " + nextNode.getId();
             } else {
@@ -147,8 +148,10 @@ public class QuestService {
             case "increase_health":
                 try {
                     int healthIncrease = Integer.parseInt(value);
-                    player.increaseHealth(healthIncrease);
-                    logger.info("Здоровье игрока увеличено на {} до {}.", healthIncrease, player.getHealth());
+                    if (player.getHealth() < 100) {
+                        player.increaseHealth(healthIncrease);
+                        logger.info("Здоровье игрока увеличено на {} до {}.", healthIncrease, player.getHealth());
+                    }
                     return "Ваше здоровье увеличено на " + healthIncrease + ".";
                 } catch (NumberFormatException e) {
                     logger.error("Некорректное значение '{}' для увеличения здоровья.", value);

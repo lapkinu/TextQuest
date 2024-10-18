@@ -24,7 +24,7 @@ function LoginPage() {
             }
             setVariant('success');
             setMessage('Вход успешен! Переходим к квесту...');
-            // Перенаправление на страницу квеста через 1 секунду
+            // Timeout на 1 секунду
             setTimeout(() => {
                 window.location.href = '/test-quest';
             }, 1000);

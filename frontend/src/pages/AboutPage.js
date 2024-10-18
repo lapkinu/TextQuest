@@ -3,28 +3,26 @@ import ReactTypingEffect from 'react-typing-effect';
 
 function AboutPage() {
     const [currentTime, setCurrentTime] = useState('Загрузка...');
-    const [isLoading, setIsLoading] = useState(false); // Добавляем состояние для отслеживания загрузки
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Функция для обновления времени через API-запрос
     const updateTimeFromServer = async () => {
-        setIsLoading(true); // Устанавливаем состояние загрузки перед началом запроса
-        setCurrentTime('Загрузка...'); // Показываем "Загрузка..." при каждом новом запросе
+        setIsLoading(true);
+        setCurrentTime('Загрузка...');
         try {
-            const response = await fetch('/api/current-time'); // Запрос к API
+            const response = await fetch('/api/current-time');
             if (!response.ok) {
                 throw new Error('Ошибка при получении времени с сервера');
             }
             const data = await response.json();
-            setCurrentTime(data.time); // Обновляем состояние с временем
+            setCurrentTime(data.time);
         } catch (error) {
             setCurrentTime('Ошибка получения времени');
             console.error(error);
         } finally {
-            setIsLoading(false); // Отключаем состояние загрузки после завершения запроса
+            setIsLoading(false);
         }
     };
 
-    // Вызов обновления времени при загрузке компонента
     useEffect(() => {
         updateTimeFromServer();
     }, []);
@@ -36,20 +34,20 @@ function AboutPage() {
             <button
                 className="btn btn-primary"
                 onClick={updateTimeFromServer}
-                disabled={isLoading} // Отключаем кнопку на время загрузки, если нужно
+                disabled={isLoading}
             >
                 {isLoading ? 'Загрузка...' : 'Обновить текущее время'}
             </button>
 
             <ReactTypingEffect
-                text={"Добро пожаловать в наш квест!"}
+                text={"   Добро пожаловать в квест!"}
                 speed={24}                // Скорость печати
-                eraseDelay={1000000}       // Предотвращаем удаление текста
+                eraseDelay={1000000}       // Предотвращение удаления текста
                 typingDelay={1000}           // Задержка перед началом печати
-                /*cursor={' '}*/                // Убираем мигающий курсор после печати
+                /*cursor={' '}*/                // Убираем курсор после печати
                 displayTextRenderer={(text, i) => {
                     return (
-                        <h6>{text}</h6>     // Оборачиваем текст в заголовок h1
+                        <h6>{"   " + text}</h6>
                     );
                 }}
             />
