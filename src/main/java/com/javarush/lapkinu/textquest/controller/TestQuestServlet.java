@@ -65,7 +65,7 @@ public class TestQuestServlet extends HttpServlet {
             // Иначе возвращаем текущее состояние игры
             GameState gameState = gameService.getCurrentGameState(player);
 
-            // Распаковываем данные из gameState без обёртки в объект gameState
+            // Распаковываем данные из gameState
             responseData.put("location", gameState.getLocation());
             responseData.put("inventory", gameState.getInventory());
             responseData.put("neighbors", gameState.getNeighbors());
