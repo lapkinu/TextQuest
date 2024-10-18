@@ -2,24 +2,20 @@ package com.javarush.lapkinu.textquest.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.javarush.lapkinu.textquest.model.quest.Action;
-import com.javarush.lapkinu.textquest.model.quest.Item;
 import com.javarush.lapkinu.textquest.model.quest.Node;
 import com.javarush.lapkinu.textquest.model.quest.Player;
-import com.javarush.lapkinu.textquest.service.QuestService;
+import com.javarush.lapkinu.textquest.service.*;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.BufferedReader;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -27,193 +23,124 @@ import java.util.stream.Collectors;
 public class TestQuestServlet extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(TestQuestServlet.class);
-
     private QuestService questService;
+    private SessionService sessionService;
+    private PlayerActionService playerActionService;
+    private EffectService effectService;
 
     @Override
     public void init() throws ServletException {
-        super.init();
-        // Инициализируем сервис с путем к JSON файлу
         questService = new QuestService("quests_4.json");
-        logger.info("TestQuestServlet инициализирован.");
+        sessionService = new SessionService();
+        playerActionService = new PlayerActionService();
+        effectService = new EffectService(questService);
+        logger.info("TestQuestServlet initialized.");
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        try {
-            HttpSession session = req.getSession(false);
-            if (session == null || session.getAttribute("username") == null) {
-                logger.warn("Неавторизованный доступ к /api/test-quest.");
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                resp.getWriter().write("{\"error\": \"Вы не авторизованы\"}");
+        Player player = sessionService.getPlayerFromSession(req, questService);
+        if (player == null) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            resp.getWriter().write("{\"error\": \"Unauthorized or starting location not found.\"}");
+            return;
+        }
+
+        // Get locationId from request
+        String locationId = req.getParameter("locationId");
+
+        if (locationId != null && !locationId.isEmpty()) {
+            // If locationId is provided, move the player
+            String result = playerActionService.movePlayer(locationId, player, questService);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", result);
+            resp.setContentType("application/json; charset=UTF-8");
+            resp.getWriter().write(new Gson().toJson(response));
+        } else {
+            // If locationId is not provided, return the current game state
+            Node currentNode = questService.getCurrentNode(player);
+            if (currentNode == null) {
+                logger.warn("Current location not found for player.");
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("{\"error\": \"Current location not found.\"}");
                 return;
             }
-            Player player = (Player) session.getAttribute("player");
-            if (player == null) {
-                // Установка начальной локации для игрока
-                String startNodeId = "Космический корабль";  // Используйте реальный ключ стартовой локации
-                Node startNode = questService.getLocation(startNodeId);
-                if (startNode == null) {
-                    logger.error("Стартовая комната '{}' не найдена.", startNodeId);
-                    throw new IllegalStateException("Стартовая комната не найдена.");
-                }
-                player = new Player(startNode.getId());
-                session.setAttribute("player", player);
-                logger.info("Игроку назначена начальная локация: {}", startNodeId);
-            }
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            // Получаем текущую локацию игрока
-            Node currentNode = questService.getLocation(player.getCurrentNodeId());
-            if (currentNode == null) {
-                logger.error("Текущая локация '{}' игрока не найдена.", player.getCurrentNodeId());
-                throw new IllegalStateException("Текущая локация игрока не найдена.");
-            }
-            // Формируем данные для ответа
-            Map<String, Object> responseData = new HashMap<>();
-            responseData.put("location", Map.of(
-                    "id", currentNode.getId(),
-                    "description", currentNode.getDescription()
-            ));
-            responseData.put("inventory", getInventoryIds(player.getInventory()));  // Инвентарь игрока
-            // Соседние локации
-            List<Map<String, String>> neighbors = currentNode.getNeighbors().stream()
-                    .map(neighborId -> Map.of(
-                            "id", neighborId,
-                            "name", neighborId
-                    ))
-                    .collect(Collectors.toList());
-            responseData.put("neighbors", neighbors);
-            // Добавляем здоровье игрока
-            responseData.put("health", player.getHealth());
-            // Добавляем предметы в текущей локации
-            List<Item> locationItems = currentNode.getItems();
-            List<Map<String, String>> itemsInLocation = locationItems.stream()
-                    .map(item -> Map.of(
-                            "id", item.getId(),
-                            "description", item.getDescription()
-                    ))
-                    .collect(Collectors.toList());
-            responseData.put("locationItems", itemsInLocation);
 
-            // Добавляем действия текущей локации
-            List<Action> actions = currentNode.getActions();
-            List<Map<String, String>> availableActions = actions.stream()
-                    .map(action -> Map.of(
-                            "id", action.getItemKey(),
-                            "description", action.getDescription()
-                    ))
-                    .collect(Collectors.toList());
-            responseData.put("actions", availableActions);
+            // Build the game state response
+            Map<String, Object> gameState = new HashMap<>();
+            gameState.put("location", currentNode);
+            gameState.put("inventory", player.getInventory());
+            gameState.put("neighbors", currentNode.getNeighbors().stream()
+                    .map(questService::getLocation)
+                    .collect(Collectors.toList()));
+            gameState.put("locationItems", currentNode.getItems());
+            gameState.put("actions", currentNode.getActions());
+            gameState.put("health", player.getHealth());
 
-            Gson gson = new Gson();
-            String jsonResponse = gson.toJson(responseData);
-            resp.getWriter().write(jsonResponse);
-            logger.debug("Отправлены данные локации '{}' игроку.", currentNode.getId());
-
-        } catch (Exception e) {
-            logger.error("Произошла ошибка при обработке GET-запроса /api/test-quest: {}", e.getMessage(), e);
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("{\"error\": \"Произошла ошибка на сервере: " + e.getMessage() + "\"}");
+            resp.setContentType("application/json; charset=UTF-8");
+            resp.getWriter().write(new Gson().toJson(gameState));
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-
-        HttpSession session = req.getSession();
-        Player player = (Player) session.getAttribute("player");
+        // Step 1: Get player from session
+        Player player = sessionService.getPlayerFromSession(req, questService);
         if (player == null) {
-            logger.warn("POST-запрос к /api/test-quest от неинициализированного игрока.");
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("{\"error\": \"Игрок не инициализирован.\"}");
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            resp.getWriter().write("{\"error\": \"Unauthorized\"}");
             return;
         }
 
-        // Чтение данных из запроса
-        BufferedReader reader = req.getReader();
-        StringBuilder jsonInput = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            jsonInput.append(line);
+        // Step 2: Read JSON from request body
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = req.getReader()) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
         }
 
-        // Парсинг JSON
+        // Logging for request body
+        logger.info("Request body: {}", sb.toString());
+
+        // Step 3: Parse JSON
         Gson gson = new Gson();
-        JsonObject jsonObject;
-        try {
-            jsonObject = gson.fromJson(jsonInput.toString(), JsonObject.class);
-        } catch (Exception e) {
-            logger.error("Некорректный формат JSON в POST-запросе /api/test-quest: {}", e.getMessage(), e);
+        JsonObject jsonObject = gson.fromJson(sb.toString(), JsonObject.class);
+
+        // Logging for JSON content
+        logger.info("Parsed JSON object: {}", jsonObject.toString());
+
+        // Step 4: Check for 'action' parameter
+        if (!jsonObject.has("action") || jsonObject.get("action").isJsonNull()) {
+            logger.warn("Parameter 'action' is missing or null.");
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("{\"error\": \"Некорректный формат JSON\"}");
-            return;
-        }
-        // Получаем действие из запроса
-        String action = jsonObject.get("action").getAsString();
-        logger.info("Получено действие: {}", action);
-        // Обработка действий
-        String responseMessage = "";
-        if (action.equalsIgnoreCase("pick_up")) {
-            if (!jsonObject.has("itemId")) {
-                logger.warn("POST-запрос к /api/test-quest с действием 'pick_up' без 'itemId'.");
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write("{\"error\": \"Не указан itemId для подбора предмета.\"}");
-                return;
-            }
-            String itemId = jsonObject.get("itemId").getAsString();
-            responseMessage = questService.pickUpItem(player, itemId);
-            if (responseMessage.startsWith("Вы подобрали")) {
-                session.setAttribute("player", player);
-                // Возвращаем успешный ответ
-                JsonObject responseJson = new JsonObject();
-                responseJson.addProperty("status", "success");
-                responseJson.addProperty("message", responseMessage);
-                resp.getWriter().write(responseJson.toString());
-                logger.info("Игрок подобрал предмет '{}'.", itemId);
-            } else {
-                logger.warn("Ошибка при подборе предмета '{}': {}", itemId, responseMessage);
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write("{\"error\": \"" + responseMessage + "\"}");
-            }
+            resp.getWriter().write("{\"error\": \"Action not specified.\"}");
             return;
         }
 
-        // Выполнение действия (не "pick_up")
-        responseMessage = questService.performAction(player, action);
-        if (!responseMessage.equals("Действие не найдено.") && !responseMessage.equals("Текущая локация не найдена.")) {
-            session.setAttribute("player", player);
-            // Возвращаем успешный ответ
-            JsonObject responseJson = new JsonObject();
-            responseJson.addProperty("status", "success");
-            responseJson.addProperty("message", responseMessage);
-            resp.getWriter().write(responseJson.toString());
-            logger.info("Действие '{}' выполнено с сообщением: '{}'.", action, responseMessage);
+        // Step 5: Get 'action' and 'itemId' from JSON
+        String actionDescription = jsonObject.get("action").getAsString();
+        String itemId = jsonObject.has("itemId") && !jsonObject.get("itemId").isJsonNull()
+                ? jsonObject.get("itemId").getAsString()
+                : null;
+
+        logger.info("Received action: '{}', itemId: '{}'", actionDescription, itemId);
+
+        // Step 6: Handle player action
+        String result;
+        if (itemId != null) {
+            // Handle item actions or movement
+            result = playerActionService.handleItemAction(actionDescription, itemId, player, questService);
         } else {
-            // Если действие не найдено, пытаемся выполнить переход
-            responseMessage = questService.moveToLocation(player, action);
-            if (responseMessage.startsWith("Вы переместились")) {
-                session.setAttribute("player", player);
-                // Возвращаем успешный ответ
-                JsonObject responseJson = new JsonObject();
-                responseJson.addProperty("status", "success");
-                responseJson.addProperty("message", responseMessage);
-                resp.getWriter().write(responseJson.toString());
-                logger.info("Игрок переместился в локацию '{}'.", action);
-            } else {
-                logger.warn("Ошибка при выполнении действия '{}': {}", action, responseMessage);
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write("{\"error\": \"" + responseMessage + "\"}");
-            }
+            // Handle other actions
+            result = playerActionService.handlePlayerAction(actionDescription, player, questService, effectService);
         }
-    }
 
-    // Вспомогательный метод для получения идентификаторов предметов в инвентаре
-    private List<String> getInventoryIds(List<Item> inventory) {
-        return inventory.stream()
-                .map(Item::getId)
-                .collect(Collectors.toList());
+        // Return result to client
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", result);
+        resp.setContentType("application/json; charset=UTF-8");
+        resp.getWriter().write(new Gson().toJson(response));
     }
 }

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Container, Row, Col, Button, Card, ListGroup, Alert, ProgressBar, Modal, Image
-} from 'react-bootstrap';
+import { Container, Row, Col, Button, Card, ListGroup, Alert, ProgressBar, Modal, Image } from 'react-bootstrap';
 import ReactTypingEffect from 'react-typing-effect';
 
 function TestQuestPage() {
@@ -14,7 +13,7 @@ function TestQuestPage() {
     const [health, setHealth] = useState(100); // Здоровье игрока
     const [showMapModal, setShowMapModal] = useState(false); // Отображение модального окна с картой
 
-    // получения данных с сервера
+    // Получение данных с сервера
     const fetchQuestData = async () => {
         try {
             const response = await fetch('/api/test-quest');
@@ -22,13 +21,15 @@ function TestQuestPage() {
             if (!response.ok) {
                 throw new Error(data.error || `Ошибка: ${response.status}`);
             }
-            setLocation(data.location); // Устанавливаем локацию
-            setInventory(data.inventory); // Устанавливаем инвентарь
-            setNeighbors(data.neighbors); // Устанавливаем соседей
-            setLocationItems(data.locationItems); // Устанавливаем предметы в локации
-            setActions(data.actions); // Устанавливаем доступные действия
+            setLocation(data.location || null); // Устанавливаем локацию
+            setInventory(data.inventory || []); // Устанавливаем инвентарь
+            setNeighbors(data.neighbors || []); // Устанавливаем соседей
+            setLocationItems(data.locationItems || []); // Устанавливаем предметы в локации
+            setActions(data.actions || []); // Устанавливаем доступные действия
             if (data.health !== undefined) {
                 setHealth(data.health); // Обновляем здоровье игрока
+            } else {
+                setHealth(100); // Значение по умолчанию
             }
         } catch (error) {
             console.error('Ошибка при получении данных квеста', error);
@@ -36,7 +37,7 @@ function TestQuestPage() {
         }
     };
 
-    // отправка POST запроса
+    // Отправка POST-запроса
     const handleAction = async (actionDescription, itemId = null) => {
         try {
             const bodyData = itemId
@@ -54,8 +55,8 @@ function TestQuestPage() {
             if (!response.ok) {
                 throw new Error(data.error || `Ошибка: ${response.status}`);
             }
-            // Проверка, что действие перемещение
-            const isMovement = currentNeighbors.some(neighbor => neighbor.id === actionDescription);
+            // Проверка, является ли действие перемещением
+            const isMovement = actionDescription === 'move';
             fetchQuestData(); // Обновляем данные после действия
             if (!isMovement) {
                 setEffectMessage(data.message || 'Действие успешно выполнено.');
@@ -81,15 +82,15 @@ function TestQuestPage() {
 
     return (
         <Container className="mt-4">
-            {/* Заголовок*/}
+            {/* Заголовок */}
             <Row>
                 <Col style={{ height: '120px' }}>
-                    <h1 className="text-center custom-heading2">"Потайная комната невидимки"</h1>
+                    <h1 className="text-center custom-heading2">"Квест: «Параллакс»"</h1>
                 </Col>
             </Row>
 
             <Row>
-                {/* Левая колонка*/}
+                {/* Левая колонка */}
                 <Col>
                     <Row>
                         {location ? (
@@ -130,7 +131,7 @@ function TestQuestPage() {
                         )}
                     </Row>
 
-                    {/* message об эффектах */}
+                    {/* Сообщение об эффектах */}
                     <Row className="mt-4">
                         <Col>
                             {effectMessage ? (
@@ -154,7 +155,7 @@ function TestQuestPage() {
                     </Row>
                 </Col>
 
-                {/* Правая колонка*/}
+                {/* Правая колонка */}
                 <Col md={4}>
                     <Row>
                         <Col>
@@ -167,7 +168,7 @@ function TestQuestPage() {
                             <Card className="mb-4">
                                 <Card.Header>Инвентарь</Card.Header>
                                 <ListGroup variant="flush">
-                                    {inventory.length > 0 ? (
+                                    {inventory && inventory.length > 0 ? (
                                         inventory.map((itemId, index) => (
                                             <ListGroup.Item key={index}>{itemId}</ListGroup.Item>
                                         ))
@@ -179,7 +180,7 @@ function TestQuestPage() {
                             <Card className="mb-4">
                                 <Card.Header>Предметы в локации</Card.Header>
                                 <ListGroup variant="flush">
-                                    {locationItems.length > 0 ? (
+                                    {locationItems && locationItems.length > 0 ? (
                                         locationItems.map((item, index) => (
                                             <ListGroup.Item key={index}>
                                                 <strong>{item.id}</strong>: {item.description}
@@ -201,7 +202,7 @@ function TestQuestPage() {
                             <Card className="mb-4">
                                 <Card.Header>Действия</Card.Header>
                                 <Card.Body>
-                                    {actions.length > 0 ? (
+                                    {actions && actions.length > 0 ? (
                                         actions.map((action, index) => (
                                             <Button
                                                 key={index}
@@ -220,15 +221,15 @@ function TestQuestPage() {
                             <Card className="mb-4">
                                 <Card.Header>Переходы</Card.Header>
                                 <Card.Body>
-                                    {neighbors.length > 0 ? (
+                                    {neighbors && neighbors.length > 0 ? (
                                         neighbors.map((neighbor, index) => (
                                             <Button
                                                 key={index}
                                                 variant="primary"
                                                 className="m-1"
-                                                onClick={() => handleAction(neighbor.id)}
+                                                onClick={() => handleAction('move', neighbor.id)}
                                             >
-                                                Переход к {neighbor.name}
+                                                Переход к {neighbor.id}
                                             </Button>
                                         ))
                                     ) : (
@@ -238,9 +239,8 @@ function TestQuestPage() {
                             </Card>
                             <Button
                                 variant="info"
-                                className="mb-4"
+                                className="mb-4 w-100"
                                 onClick={() => setShowMapModal(true)}
-                                block
                             >
                                 Показать карту
                             </Button>

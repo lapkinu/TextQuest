@@ -7,11 +7,11 @@ import java.util.List;
 public class Node implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String id;                         // Идентификатор локации
-    private String description;                // Описание локации
-    private List<String> neighbors;            // Соседи по ключу локации
-    private List<Item> items;                  // Предметы в локации
-    private List<Action> actions;              // Действия в локации
+    private String id;                         // Location identifier
+    private String description;                // Location description
+    private List<String> neighbors;            // Neighboring locations
+    private List<Item> items;                  // Items in the location
+    private List<Action> actions;              // Actions available in the location
 
     public Node() {
         this.neighbors = new ArrayList<>();
@@ -27,6 +27,7 @@ public class Node implements Serializable {
         this.actions = new ArrayList<>();
     }
 
+    // Methods to add and remove neighbors, items, and actions
     public void addNeighbor(String neighborId) {
         neighbors.add(neighborId);
     }
@@ -55,6 +56,7 @@ public class Node implements Serializable {
         return actions;
     }
 
+    // Getters and Setters for id and description
     public String getId() {
         return id;
     }

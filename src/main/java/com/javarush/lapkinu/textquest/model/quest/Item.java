@@ -5,8 +5,8 @@ import java.io.Serializable;
 public class Item implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String id;            // Идентификатор предмета
-    private String description;   // Описание предмета
+    private String id;            // Item identifier
+    private String description;   // Item description
 
     public Item() {}
 
@@ -15,17 +15,17 @@ public class Item implements Serializable {
         this.description = description;
     }
 
-    // Геттеры и сеттеры
+    // Getters and Setters
     public String getId() {
         return id;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public void setDescription(String description) {
