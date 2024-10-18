@@ -43,7 +43,7 @@ function TestQuestPage() {
             const bodyData = itemId
                 ? { action: actionDescription, itemId: itemId }
                 : { action: actionDescription };
-            const currentNeighbors = [...neighbors];
+            /*const currentNeighbors = [...neighbors];*/
             const response = await fetch('/api/test-quest', {
                 method: 'POST',
                 headers: {
