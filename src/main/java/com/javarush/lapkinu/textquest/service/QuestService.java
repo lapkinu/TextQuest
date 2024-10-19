@@ -61,4 +61,9 @@ public class QuestService {
     public Node getCurrentNode(Player player) {
         return getLocation(player.getCurrentNodeId());
     }
+
+    public void addLocation(Node node) {
+        questGraph.addNode(node);
+    }
+
 }
