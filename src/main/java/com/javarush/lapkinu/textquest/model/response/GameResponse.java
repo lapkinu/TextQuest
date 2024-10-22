@@ -14,7 +14,6 @@ public class GameResponse {
         this.gameState = gameState;
     }
 
-    // Геттеры и сеттеры
     public String getMessage() {
         return message;
     }

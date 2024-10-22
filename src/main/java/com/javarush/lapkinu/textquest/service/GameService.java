@@ -23,7 +23,6 @@ public class GameService {
         gameState.setLocationItems(currentNode.getItems());
         gameState.setActions(currentNode.getActions());
         gameState.setHealth(player.getHealth());
-
         return gameState;
     }
 }

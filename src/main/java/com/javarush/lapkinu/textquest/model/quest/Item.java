@@ -5,8 +5,9 @@ import java.io.Serializable;
 public class Item implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String id;            // Item identifier
-    private String description;   // Item description
+    private String id;
+    private String description;
+    private boolean reusable;
 
     public Item() {}
 
@@ -15,7 +16,6 @@ public class Item implements Serializable {
         this.description = description;
     }
 
-    // Getters and Setters
     public String getId() {
         return id;
     }
@@ -30,5 +30,13 @@ public class Item implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isReusable() {
+        return reusable;
+    }
+
+    public void setReusable(boolean reusable) {
+        this.reusable = reusable;
     }
 }

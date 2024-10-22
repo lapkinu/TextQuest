@@ -10,7 +10,7 @@ public class Quest implements Serializable {
 
     public Quest() {}
 
-    // Getters and Setters
+
     public List<Node> getLocations() {
         return locations;
     }

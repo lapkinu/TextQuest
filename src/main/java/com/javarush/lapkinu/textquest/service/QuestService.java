@@ -22,7 +22,6 @@ public class QuestService {
         loadQuests(jsonFilePath);
     }
 
-    // Метод для загрузки квестов из файла JSON
     private void loadQuests(String jsonFilePath) {
         try {
             Gson gson = new Gson();
@@ -47,17 +46,14 @@ public class QuestService {
         }
     }
 
-    // Метод для получения стартовой локации
     public Node getStartNode() {
         return questGraph.getNodes().values().stream().findFirst().orElse(null);
     }
 
-    // Метод для получения локации по её ID
     public Node getLocation(String locationId) {
         return questGraph.getNode(locationId);
     }
 
-    // Метод для получения текущей локации игрока
     public Node getCurrentNode(Player player) {
         return getLocation(player.getCurrentNodeId());
     }

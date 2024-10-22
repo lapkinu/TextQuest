@@ -33,13 +33,12 @@ public class EffectService {
                 .apply(effect, player);
     }
 
-    // Handler methods for different effects
     private String handleIncreaseHealth(Effect effect, Player player) {
         try {
             int healthIncrease = Integer.parseInt(effect.getValue());
             player.increaseHealth(healthIncrease);
             logger.info("Player health increased by {} to {}.", healthIncrease, player.getHealth());
-            return "Your health increased by " + healthIncrease + ".";
+            return "Ваше здоровье увеличилось на " + healthIncrease + ".";
         } catch (NumberFormatException e) {
             logger.error("Invalid health increase value '{}'.", effect.getValue());
             return "Error increasing health.";
@@ -57,10 +56,10 @@ public class EffectService {
         if (newNeighbor != null) {
             currentNode.addNeighbor(newNeighbor.getId());
             logger.info("Added new neighbor '{}' to location '{}'.", newNeighbor.getId(), currentNode.getId());
-            return "New location unlocked: " + newNeighbor.getId() + ".";
+            return "Открыта новая локация: " + newNeighbor.getId() + ".";
         } else {
             logger.warn("Location '{}' not found.", effect.getValue());
-            return "Unable to unlock new location.";
+            return "Невозможно разблокировать новую локацию.";
         }
     }
 

@@ -23,6 +23,13 @@ public class PlayerActionService {
             return "Невозможно переместиться в указанную локацию.";
         }
 
+        int healthDecrease = 10;
+        player.decreaseHealth(healthDecrease);
+        if (player.getHealth() <= 0) {
+            logger.info("Игрок погиб при перемещении в локацию '{}'.", locationId);
+            return "Вы переместились в локацию: " + nextNode.getId() + ". Ваше здоровье достигло нуля. Игра окончена.";
+        }
+
         player.setCurrentNodeId(nextNode.getId());
         logger.info("Игрок перемещён в локацию '{}'.", locationId);
         return "Вы переместились в локацию: " + nextNode.getId() + ".";
@@ -35,7 +42,6 @@ public class PlayerActionService {
             return "Ошибка: текущая локация не найдена.";
         }
 
-        // Ищем действие в текущей локации по описанию
         Optional<Action> actionOptional = currentNode.getActions().stream()
                 .filter(action -> action.getDescription().equals(actionDescription))
                 .findFirst();
@@ -46,14 +52,11 @@ public class PlayerActionService {
         }
 
         Action action = actionOptional.get();
-
-        // Проверяем, есть ли необходимый предмет у игрока
         if (action.getItemKey() != null && !player.hasItem(action.getItemKey())) {
             logger.warn("Игрок не имеет необходимого предмета '{}' для действия '{}'.", action.getItemKey(), actionDescription);
             return "У вас нет необходимого предмета для этого действия.";
         }
-
-        // Применяем эффект действия
+        player.removeItem(action.getItemKey());
         return effectService.applyEffect(action.getEffect(), player);
     }
 
@@ -64,7 +67,6 @@ public class PlayerActionService {
             return "Ошибка: текущая локация не найдена.";
         }
 
-        // Ищем предмет в текущей локации
         Optional<Item> itemOptional = currentNode.getItems().stream()
                 .filter(item -> item.getId().equals(itemId))
                 .findFirst();
@@ -75,11 +77,7 @@ public class PlayerActionService {
         }
 
         Item item = itemOptional.get();
-
-        // Добавляем предмет в инвентарь игрока
         player.addItem(item.getId());
-
-        // Удаляем предмет из локации
         currentNode.getItems().remove(item);
 
         logger.info("Игрок подобрал предмет '{}'.", itemId);

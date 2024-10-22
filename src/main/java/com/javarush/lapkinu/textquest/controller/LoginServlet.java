@@ -28,15 +28,12 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
-
-        // Чтение данных из запроса
         BufferedReader reader = req.getReader();
         StringBuilder jsonInput = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
             jsonInput.append(line);
         }
-        // Парсинг JSON
         Gson gson = new Gson();
         JsonObject jsonObject;
         try {
@@ -47,11 +44,8 @@ public class LoginServlet extends HttpServlet {
             resp.getWriter().write("{\"error\": \"Некорректный формат JSON\"}");
             return;
         }
-
         String username = jsonObject.get("username").getAsString();
         String password = jsonObject.get("password").getAsString();
-
-        // Проверка авторизации пользователя
         if (userService.authenticate(username, password)) {
             HttpSession session = req.getSession();
             session.setAttribute("username", username);

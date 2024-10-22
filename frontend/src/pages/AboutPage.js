@@ -41,10 +41,10 @@ function AboutPage() {
 
             <ReactTypingEffect
                 text={"   Добро пожаловать в квест!"}
-                speed={24}                // Скорость печати
-                eraseDelay={1000000}       // Предотвращение удаления текста
-                typingDelay={1000}           // Задержка перед началом печати
-                /*cursor={' '}*/                // Убираем курсор после печати
+                speed={24}
+                eraseDelay={1000000}
+                typingDelay={1000}
+                /*cursor={' '}*/
                 displayTextRenderer={(text, i) => {
                     return (
                         <h6>{"   " + text}</h6>

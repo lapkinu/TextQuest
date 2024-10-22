@@ -5,9 +5,9 @@ import java.io.Serializable;
 public class Action implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String itemKey;      // Required item to perform the action
-    private String description;  // Description of the action
-    private Effect effect;       // Effect of the action
+    private String itemKey;
+    private String description;
+    private Effect effect;
 
     public Action() {}
 
@@ -17,7 +17,7 @@ public class Action implements Serializable {
         this.effect = effect;
     }
 
-    // Getters and Setters
+
     public String getItemKey() {
         return itemKey;
     }

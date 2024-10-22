@@ -5,8 +5,8 @@ import java.io.Serializable;
 public class Effect implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String type;  // Type of effect
-    private String value; // Value associated with the effect
+    private String type;
+    private String value;
 
     public Effect() {}
 
@@ -15,7 +15,6 @@ public class Effect implements Serializable {
         this.value = value;
     }
 
-    // Getters and Setters
     public String getType() {
         return type;
     }

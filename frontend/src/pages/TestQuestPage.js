@@ -3,17 +3,16 @@ import { Container, Row, Col, Button, Card, ListGroup, Alert, ProgressBar, Modal
 import ReactTypingEffect from 'react-typing-effect';
 
 function TestQuestPage() {
-    const [location, setLocation] = useState(null); // Текущая локация
-    const [inventory, setInventory] = useState([]); // Инвентарь игрока
-    const [neighbors, setNeighbors] = useState([]); // Соседние локации
-    const [locationItems, setLocationItems] = useState([]); // Предметы в текущей локации
-    const [actions, setActions] = useState([]); // Доступные действия
-    const [message, setMessage] = useState(''); // Служебные сообщения (например, ошибки)
-    const [effectMessage, setEffectMessage] = useState(''); // Сообщения об эффектах
-    const [health, setHealth] = useState(100); // Здоровье игрока
-    const [showMapModal, setShowMapModal] = useState(false); // Отображение модального окна с картой
+    const [location, setLocation] = useState(null);
+    const [inventory, setInventory] = useState([]);
+    const [neighbors, setNeighbors] = useState([]);
+    const [locationItems, setLocationItems] = useState([]);
+    const [actions, setActions] = useState([]);
+    const [message, setMessage] = useState('');
+    const [effectMessage, setEffectMessage] = useState('');
+    const [health, setHealth] = useState(100);
+    const [showMapModal, setShowMapModal] = useState(false);
 
-    // Получение данных с сервера
     const fetchQuestData = async () => {
         try {
             const response = await fetch('/api/test-quest');
@@ -22,18 +21,16 @@ function TestQuestPage() {
                 throw new Error(data.error || `Ошибка: ${response.status}`);
             }
 
-            // Добавьте эту строку:
             const gameState = data.gameState || data;
-
-            setLocation(gameState.location || null); // Устанавливаем локацию
-            setInventory(gameState.inventory || []); // Устанавливаем инвентарь
-            setNeighbors(gameState.neighbors || []); // Устанавливаем соседей
-            setLocationItems(gameState.locationItems || []); // Устанавливаем предметы в локации
-            setActions(gameState.actions || []); // Устанавливаем доступные действия
+            setLocation(gameState.location || null);
+            setInventory(gameState.inventory || []);
+            setNeighbors(gameState.neighbors || []);
+            setLocationItems(gameState.locationItems || []);
+            setActions(gameState.actions || []);
             if (gameState.health !== undefined) {
-                setHealth(gameState.health); // Обновляем здоровье игрока
+                setHealth(gameState.health);
             } else {
-                setHealth(100); // Значение по умолчанию
+                setHealth(100);
             }
         } catch (error) {
             console.error('Ошибка при получении данных квеста', error);
@@ -41,31 +38,29 @@ function TestQuestPage() {
         }
     };
 
-    // Отправка POST-запроса
+
     const handleAction = async (actionDescription, itemId = null) => {
         try {
             const bodyData = itemId
                 ? { action: actionDescription, itemId: itemId }
                 : { action: actionDescription };
-            /*const currentNeighbors = [...neighbors];*/
             const response = await fetch('/api/test-quest', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(bodyData), // Отправка данных
+                body: JSON.stringify(bodyData),
             });
             const data = await response.json();
             if (!response.ok) {
                 throw new Error(data.error || `Ошибка: ${response.status}`);
             }
-            // Проверка, является ли действие перемещением
             const isMovement = actionDescription === 'move';
-            fetchQuestData(); // Обновляем данные после действия
+            fetchQuestData();
             if (!isMovement) {
                 setEffectMessage(data.message || 'Действие успешно выполнено.');
             } else {
-                setEffectMessage(''); // Очистка effectMessage при перемещении
+                setEffectMessage('');
             }
         } catch (error) {
             console.error('Ошибка при выполнении действия', error);
@@ -77,7 +72,7 @@ function TestQuestPage() {
         fetchQuestData();
     }, []);
 
-    // Перенаправление
+
     useEffect(() => {
         if (message === 'Вы не авторизованы') {
             window.location.href = '/login';
@@ -92,7 +87,6 @@ function TestQuestPage() {
                     <h1 className="text-center custom-heading2">"Квест: «Параллакс»"</h1>
                 </Col>
             </Row>
-
             <Row>
                 {/* Левая колонка */}
                 <Col>

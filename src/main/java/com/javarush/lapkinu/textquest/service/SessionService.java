@@ -15,17 +15,13 @@ public class SessionService {
         HttpSession session = req.getSession();
         Player player = (Player) session.getAttribute("player");
         if (player == null) {
-            // Создаем нового игрока
             player = new Player();
-
-            // Устанавливаем текущую локацию на стартовую локацию квеста
             Node startNode = questService.getStartNode();
             if (startNode == null) {
                 logger.error("Стартовая локация не найдена.");
                 return null;
             }
             player.setCurrentNodeId(startNode.getId());
-
             session.setAttribute("player", player);
             logger.info("Создан новый игрок и установлен в сессии.");
         }

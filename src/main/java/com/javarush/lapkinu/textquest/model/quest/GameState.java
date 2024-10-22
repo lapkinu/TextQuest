@@ -10,7 +10,6 @@ public class GameState {
     private List<Action> actions;
     private int health;
 
-    // Геттеры и сеттеры
     public Node getLocation() {
         return location;
     }

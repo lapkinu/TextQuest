@@ -53,19 +53,13 @@ public class TestQuestServlet extends HttpServlet {
             sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Вы не авторизованы или начальная локация не найдена.");
             return;
         }
-
         String locationId = req.getParameter("locationId");
         Map<String, Object> responseData = new HashMap<>();
-
         if (locationId != null && !locationId.isEmpty()) {
-            // Если указан locationId, перемещаем игрока
             String message = playerActionService.movePlayer(locationId, player, questService);
             responseData.put("message", message);
         } else {
-            // Иначе возвращаем текущее состояние игры
             GameState gameState = gameService.getCurrentGameState(player);
-
-            // Распаковываем данные из gameState
             responseData.put("location", gameState.getLocation());
             responseData.put("inventory", gameState.getInventory());
             responseData.put("neighbors", gameState.getNeighbors());
@@ -73,7 +67,6 @@ public class TestQuestServlet extends HttpServlet {
             responseData.put("actions", gameState.getActions());
             responseData.put("health", gameState.getHealth());
         }
-
         sendResponse(resp, responseData);
     }
 
@@ -84,24 +77,20 @@ public class TestQuestServlet extends HttpServlet {
             sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Вы не авторизованы");
             return;
         }
-
         JsonObject jsonObject = parseRequestBody(req);
         if (jsonObject == null || !jsonObject.has("action") || jsonObject.get("action").isJsonNull()) {
             sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Действие не указано.");
             return;
         }
-
         String actionType = jsonObject.get("action").getAsString();
-
         ActionCommand command = commandFactory.getCommand(actionType);
-
         String result = command.execute(player, jsonObject);
-
         GameResponse gameResponse = new GameResponse(result);
         sendResponse(resp, gameResponse);
     }
 
-    // Вспомогательные методы
+
+
     private void sendError(HttpServletResponse resp, int statusCode, String message) throws IOException {
         resp.setStatus(statusCode);
         resp.setContentType("application/json; charset=UTF-8");
